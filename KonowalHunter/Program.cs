@@ -6,14 +6,18 @@ using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Tesseract;
+using Microsoft.Office.Interop.Excel;
+using DataTable = System.Data.DataTable;
 
 namespace KonowalHunter
 {
@@ -23,9 +27,9 @@ namespace KonowalHunter
         public static List<Medic> Medics { get; set; } = new List<Medic>();
         static void Main(string[] args)
         {
-            string org = "Okręgowa Izba Lekarska w Warszawie";
-            string voidvod = "MAZOWIECKIE";
-            string speciality = "Ginekolog";
+            string org = "Lubelska Izba Lekarska";
+            string voidvod = "LUBELSKIE";
+            string speciality = "endokrynolog";
             string registy = "https://rpwdl.csioz.gov.pl/RPZ/RegistryList";
             string mainPage = "https://rpwdl.csioz.gov.pl/RPZ/SearchEx?institutionType=L";
             IWebDriver webDriver = new FirefoxDriver();
@@ -57,23 +61,27 @@ namespace KonowalHunter
             var countertxt = webDriver.FindElements(By.ClassName("form-left")).FirstOrDefault(e => e.Text.Contains("Liczba znalezionych ksiąg:"));
             double counter = double.Parse(countertxt.Text.Substring(countertxt.Text.IndexOf(":") + 1, countertxt.Text.Length - (countertxt.Text.IndexOf(":") + 1)).Trim());
             int totalNrOfPages = (int)Math.Ceiling(counter / 15);
+           
 
-            for (int i = 2; i <= totalNrOfPages; i++)
+            for (int i = 1; i <= totalNrOfPages; i++)
             {
                 registy = webDriver.Url;
                 ReadPage(registy, webDriver);
-               webDriver.FindElements(By.ClassName("pagination"))[0]
+                var nextPageClick = webDriver.FindElements(By.ClassName("pagination"))[0]
                      .FindElements(By.TagName("li"))
-                     .FirstOrDefault(e => e.Text == i.ToString())
-                     .FindElements(By.TagName("a"))[0].Click();
-                System.Threading.Thread.Sleep(500);
-                //.Click();
+                     .FirstOrDefault(e => e.Text == (i + 1).ToString())
+                     ;
+                if (nextPageClick!=null)
+                {
+                    nextPageClick.FindElements(By.TagName("a"))[0].Click();
+                    System.Threading.Thread.Sleep(500);
+                }
+               
             }
+            GenerateExcel(ConvertToDataTable<Medic>(Medics));
 
-            Medics.ForEach(e =>
-                   Console.WriteLine("Name:" + e.Name  +" phone:" + e.Phone)
-            );
-     
+            Console.ReadLine();
+
             #region old
             //int rowIndex = 0;
             //foreach (var row in Rows)
@@ -130,7 +138,7 @@ namespace KonowalHunter
                     retry: ;
                     try
                     {
-                      phone = webDriver.FindElements
+                     phone = webDriver.FindElements
                       (By.ClassName("odstep")).
                       FirstOrDefault(e => e.Text.StartsWith("Rubryka 18. Adres i numer telefonu miejsca udzielania świadczeń zdrowotnych")).
                       FindElements(By.TagName("tr")).FirstOrDefault(r => r.Text.StartsWith("7. Numer telefonu")).
@@ -145,6 +153,8 @@ namespace KonowalHunter
                            
                                 }
                         goto retry;
+
+                        #region old
                         //string filePath = @"C:\Users\Zaneta\Desktop\programowanie\";
                         //var remElement = webDriver.FindElement(By.Id("CaptchaImage"));
                         //Point location = remElement.Location;
@@ -169,10 +179,12 @@ namespace KonowalHunter
                         //    Page ocrPage = engine.Process(Pix.LoadFromFile(filePath + "Generate.png"), PageSegMode.AutoOnly);
                         //    var captchatext = ocrPage.GetText();
                         //}
+                        #endregion
+
                     }
 
 
-                    Medics.Add(new Medic { Name = name, Phone=phone });
+                    Medics.Add(new Medic { Name = name.Replace("\n", "").Replace("\r", "").Trim(), Phone=phone.Replace("\n", "").Replace("\r", "").Trim() });
 
                     webDriver.Url = registy;
                     waitTillPageReady(webDriver, registy);
@@ -215,6 +227,69 @@ namespace KonowalHunter
             {
                 wait.Until(wd => javaScriptExecutor.ExecuteScript("return document.readyState").ToString() == "complete");
             }
+        }
+
+        public static void GenerateExcel(System.Data.DataTable table)
+        {
+
+
+            // create a excel app along side with workbook and worksheet and give a name to it  
+            Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application();
+            excelApp.Visible = false;
+            Workbook excelWorkBook = excelApp.Workbooks.Add();
+            _Worksheet xlWorksheet = excelWorkBook.Sheets[1];
+            Range xlRange = xlWorksheet.UsedRange;
+              //Add a new worksheet to workbook with the Datatable name  
+                Worksheet excelWorkSheet = excelWorkBook.Sheets.Add();
+                
+
+                // add all the columns  
+                for (int i = 1; i < table.Columns.Count + 1; i++)
+                {
+                    excelWorkSheet.Cells[1, i] = table.Columns[i - 1].ColumnName;
+                }
+
+                // add all the rows  
+                for (int j = 0; j < table.Rows.Count; j++)
+                {
+                    for (int k = 0; k < table.Columns.Count; k++)
+                    {
+                        excelWorkSheet.Cells[j + 2, k + 1] = table.Rows[j].ItemArray[k].ToString();
+                    }
+                }
+            excelApp.Visible = true;
+        }
+
+
+        public static DataTable ConvertToDataTable<T>(List<T> models)
+        {
+            // creating a data table instance and typed it as our incoming model   
+            // as I make it generic, if you want, you can make it the model typed you want.  
+            DataTable dataTable = new DataTable(typeof(T).Name);
+
+            //Get all the properties of that model  
+            PropertyInfo[] Props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            // Loop through all the properties              
+            // Adding Column name to our datatable  
+            foreach (PropertyInfo prop in Props)
+            {
+                //Setting column names as Property names    
+                dataTable.Columns.Add(prop.Name);
+            }
+            // Adding Row and its value to our dataTable  
+            foreach (T item in models)
+            {
+                var values = new object[Props.Length];
+                for (int i = 0; i < Props.Length; i++)
+                {
+                    //inserting property values to datatable rows    
+                    values[i] = Props[i].GetValue(item, null);
+                }
+                // Finally add value to datatable    
+                dataTable.Rows.Add(values);
+            }
+            return dataTable;
         }
     }
 }
