@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Tesseract;
@@ -59,16 +60,20 @@ namespace KonowalHunter
 
             for (int i = 2; i <= totalNrOfPages; i++)
             {
+                registy = webDriver.Url;
                 ReadPage(registy, webDriver);
                webDriver.FindElements(By.ClassName("pagination"))[0]
                      .FindElements(By.TagName("li"))
                      .FirstOrDefault(e => e.Text == i.ToString())
                      .FindElements(By.TagName("a"))[0].Click();
-                System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(500);
                 //.Click();
             }
 
-
+            Medics.ForEach(e =>
+                   Console.WriteLine("Name:" + e.Name  +" phone:" + e.Phone)
+            );
+     
             #region old
             //int rowIndex = 0;
             //foreach (var row in Rows)
@@ -120,11 +125,12 @@ namespace KonowalHunter
                     string name = Rows[i].FindElements(By.TagName("td"))[1].Text;
                     Rows[i].FindElements(By.TagName("td"))[3]
                        .FindElements(By.TagName("a")).FirstOrDefault(e => e.Text == "Wyświetl").Click();
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(500);
                     string phone=null;
+                    retry: ;
                     try
                     {
-                        phone = webDriver.FindElements
+                      phone = webDriver.FindElements
                       (By.ClassName("odstep")).
                       FirstOrDefault(e => e.Text.StartsWith("Rubryka 18. Adres i numer telefonu miejsca udzielania świadczeń zdrowotnych")).
                       FindElements(By.TagName("tr")).FirstOrDefault(r => r.Text.StartsWith("7. Numer telefonu")).
@@ -132,30 +138,37 @@ namespace KonowalHunter
                     }
                     catch (Exception ex)
                     {
-                        string filePath = @"C:\Users\Zaneta\Desktop\programowanie\";
-                        var remElement = webDriver.FindElement(By.Id("CaptchaImage"));
-                        Point location = remElement.Location;
-                        var screenshot = (webDriver as FirefoxDriver).GetScreenshot();
-
-                        using (MemoryStream stream = new MemoryStream(screenshot.AsByteArray))
-                        {
-                            using (Bitmap bitmap = new Bitmap(stream))
-                            {
-                                RectangleF part = new RectangleF(location.X, location.Y, remElement.Size.Width, remElement.Size.Height);
-                                using (Bitmap bn = bitmap.Clone(part, bitmap.PixelFormat))
+                        while (webDriver.FindElements
+                                (By.ClassName("odstep")).
+                                FirstOrDefault(e => e.Text.StartsWith("Rubryka 18. Adres i numer telefonu miejsca udzielania świadczeń zdrowotnych"))==null)
                                 {
-                                    bn.Save(filePath + "Generate.gif", System.Drawing.Imaging.ImageFormat.Png);
+                           
                                 }
-                            }
+                        goto retry;
+                        //string filePath = @"C:\Users\Zaneta\Desktop\programowanie\";
+                        //var remElement = webDriver.FindElement(By.Id("CaptchaImage"));
+                        //Point location = remElement.Location;
+                        //var screenshot = (webDriver as FirefoxDriver).GetScreenshot();
 
-                        }
+                        //using (MemoryStream stream = new MemoryStream(screenshot.AsByteArray))
+                        //{
+                        //    using (Bitmap bitmap = new Bitmap(stream))
+                        //    {
+                        //        RectangleF part = new RectangleF(location.X, location.Y, remElement.Size.Width, remElement.Size.Height);
+                        //        using (Bitmap bn = bitmap.Clone(part, bitmap.PixelFormat))
+                        //        {
+                        //            bn.Save(filePath + "Generate.gif", System.Drawing.Imaging.ImageFormat.Png);
+                        //        }
+                        //    }
 
-                        using (var engine = new TesseractEngine(filePath, "eng", EngineMode.Default))
-                        {
+                        //}
 
-                            Page ocrPage = engine.Process(Pix.LoadFromFile(filePath + "Generate.png"), PageSegMode.AutoOnly);
-                            var captchatext = ocrPage.GetText();
-                        }
+                        //using (var engine = new TesseractEngine(filePath, "eng", EngineMode.Default))
+                        //{
+
+                        //    Page ocrPage = engine.Process(Pix.LoadFromFile(filePath + "Generate.png"), PageSegMode.AutoOnly);
+                        //    var captchatext = ocrPage.GetText();
+                        //}
                     }
 
 
