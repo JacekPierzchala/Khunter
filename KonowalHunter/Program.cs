@@ -25,11 +25,11 @@ namespace KonowalHunter
     {
         public static ReadOnlyCollection<IWebElement> Rows { get; set; }
         public static List<Medic> Medics { get; set; } = new List<Medic>();
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            string org = "Lubelska Izba Lekarska";
-            string voidvod = "LUBELSKIE";
-            string speciality = "endokrynolog";
+            string org = args[0];
+            string voidvod = args[1];
+            string speciality = args[2];
             string registy = "https://rpwdl.csioz.gov.pl/RPZ/RegistryList";
             string mainPage = "https://rpwdl.csioz.gov.pl/RPZ/SearchEx?institutionType=L";
             IWebDriver webDriver = new FirefoxDriver();
@@ -80,7 +80,9 @@ namespace KonowalHunter
             }
             GenerateExcel(ConvertToDataTable<Medic>(Medics));
 
-            Console.ReadLine();
+            webDriver.Close();
+            webDriver.Quit();
+
 
             #region old
             //int rowIndex = 0;
@@ -257,6 +259,7 @@ namespace KonowalHunter
                         excelWorkSheet.Cells[j + 2, k + 1] = table.Rows[j].ItemArray[k].ToString();
                     }
                 }
+            
             excelApp.Visible = true;
         }
 

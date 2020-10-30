@@ -1,0 +1,23 @@
+﻿<Window x:Class="KonowalHunter.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:KonowalHunter.WPF"
+        mc:Ignorable="d"
+        Topmost="True"
+        WindowStartupLocation="CenterScreen"
+        Title="KONOWAŁ HUNTER" Height="300" Width="350">
+    <Grid>
+        <StackPanel>
+            <Label>Izba Lekarska</Label>
+            <ComboBox SelectedItem="{Binding SelectedOrg}" ItemsSource="{Binding Orgs}"></ComboBox>
+            <Label>Wojewodztwo</Label>
+            <ComboBox SelectedItem="{Binding SelectedVoivod}"  ItemsSource="{Binding Voivods}"></ComboBox>
+            <Label>Specjalizacja</Label>
+            <TextBox Text="{Binding Specialisation}" Margin="2" Height="30"></TextBox>
+            <Button Cursor="Hand" Click="Button_Click">Search</Button>
+        </StackPanel>
+        
+    </Grid>
+</Window>
