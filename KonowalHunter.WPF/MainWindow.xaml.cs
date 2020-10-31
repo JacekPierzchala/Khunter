@@ -30,6 +30,8 @@ namespace KonowalHunter.WPF
         public List<string> Voivods { get; set; } = new List<string>();
         public string Specialisation { get; set; }
 
+        public bool Pending { get; set; }
+
         public MainWindow()
         {
             try
@@ -43,6 +45,7 @@ namespace KonowalHunter.WPF
             }
           
             InitializeComponent();
+            Pending = true;
             DataContext = this;
         }
 
@@ -83,14 +86,18 @@ namespace KonowalHunter.WPF
             }
             try
             {
+                Pending = false;
                 string[] args = { SelectedOrg, SelectedVoivod, Specialisation };
                 Program.Main(args);
+                Pending = true;
                 MessageBox.Show("File is ready", "", MessageBoxButton.OK, MessageBoxImage.Information);
+            
             }
             catch (Exception ex)
             {
 
                 MessageBox.Show("Error:" + ex.Message, "", MessageBoxButton.OK, MessageBoxImage.Error);
+                Pending = true;
                 return;
             }
 

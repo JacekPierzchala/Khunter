@@ -11,12 +11,12 @@
     <Grid>
         <StackPanel>
             <Label>Izba Lekarska</Label>
-            <ComboBox SelectedItem="{Binding SelectedOrg}" ItemsSource="{Binding Orgs}"></ComboBox>
+            <ComboBox IsEnabled="{Binding Pending}" SelectedItem="{Binding SelectedOrg}" ItemsSource="{Binding Orgs}"></ComboBox>
             <Label>Wojewodztwo</Label>
-            <ComboBox SelectedItem="{Binding SelectedVoivod}"  ItemsSource="{Binding Voivods}"></ComboBox>
+            <ComboBox IsEnabled="{Binding Pending}"  SelectedItem="{Binding SelectedVoivod}"  ItemsSource="{Binding Voivods}"></ComboBox>
             <Label>Specjalizacja</Label>
-            <TextBox Text="{Binding Specialisation}" Margin="2" Height="30"></TextBox>
-            <Button Cursor="Hand" Click="Button_Click">Search</Button>
+            <TextBox IsEnabled="{Binding Pending}"  Text="{Binding Specialisation}" Margin="2" Height="30"></TextBox>
+            <Button IsEnabled="{Binding Pending}"  Cursor="Hand" Click="Button_Click">Search</Button>
         </StackPanel>
         
     </Grid>
