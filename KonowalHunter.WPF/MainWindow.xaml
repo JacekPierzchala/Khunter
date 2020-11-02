@@ -15,7 +15,9 @@
             <Label>Wojewodztwo</Label>
             <ComboBox IsEnabled="{Binding Pending}"  SelectedItem="{Binding SelectedVoivod}"  ItemsSource="{Binding Voivods}"></ComboBox>
             <Label>Specjalizacja</Label>
-            <TextBox IsEnabled="{Binding Pending}"  Text="{Binding Specialisation}" Margin="2" Height="30"></TextBox>
+            <TextBox FontSize="14" IsEnabled="{Binding Pending}"  Text="{Binding Specialisation}" Margin="2" Height="30"></TextBox>
+            <Label>Miasto</Label>
+            <TextBox FontSize="14" IsEnabled="{Binding Pending}"  Text="{Binding City}" Margin="2" Height="30"></TextBox>
             <Button IsEnabled="{Binding Pending}"  Cursor="Hand" Click="Button_Click">Search</Button>
         </StackPanel>
         

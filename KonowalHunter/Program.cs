@@ -25,13 +25,19 @@ namespace KonowalHunter
     {
         public static ReadOnlyCollection<IWebElement> Rows { get; set; }
         public static List<Medic> Medics { get; set; } = new List<Medic>();
+        public static string Org { get; set; }
+        public static string Voidvod { get; set; }
+        public static string Speciality { get; set; }
+        public static string City { get; set; }
         public static void Main(string[] args)
         {
-            string org = args[0];
-            string voidvod = args[1];
-            string speciality = args[2];
+            Org = args[0];
+            Voidvod = args[1];
+            Speciality = args[2];
+            City = args[3];
             string registy = "https://rpwdl.csioz.gov.pl/RPZ/RegistryList";
             string mainPage = "https://rpwdl.csioz.gov.pl/RPZ/SearchEx?institutionType=L";
+            Medics.Clear();
             IWebDriver webDriver = new FirefoxDriver();
             webDriver.Url = mainPage;
             webDriver.Manage().Window.Maximize();
@@ -47,15 +53,19 @@ namespace KonowalHunter
             }
 
             var orgSelect = new SelectElement(webDriver.FindElement(By.Id("InstitutionId")));
-            orgSelect.SelectByText(org);
+            orgSelect.SelectByText(Org);
 
             var voidSelect = new SelectElement(webDriver.FindElement(By.Id("Voivodship")));
-            voidSelect.SelectByText(voidvod);
+            voidSelect.SelectByText(Voidvod);
 
-            webDriver.FindElement(By.Id("Speciality")).SendKeys(speciality);
+            webDriver.FindElement(By.Id("Speciality")).SendKeys(Speciality);
+            if (City!=null)
+            {
+                webDriver.FindElement(By.Id("City")).SendKeys(City);
+            }
+           
 
             webDriver.FindElement(By.ClassName("btn-primary")).Click();
-
             waitTillPageReady(webDriver, registy);
 
             var countertxt = webDriver.FindElements(By.ClassName("form-left")).FirstOrDefault(e => e.Text.Contains("Liczba znalezionych ksiąg:"));
@@ -136,30 +146,52 @@ namespace KonowalHunter
                     Rows[i].FindElements(By.TagName("td"))[3]
                        .FindElements(By.TagName("a")).FirstOrDefault(e => e.Text == "Wyświetl").Click();
                     System.Threading.Thread.Sleep(500);
+                    List<string> cities = new List<string>();
+                    List<string> phones = new List<string>();
                     string phone=null;
+                    string city = null;
                     retry: ;
                     try
                     {
-                     phone = webDriver.FindElements
-                      (By.ClassName("odstep")).
-                      FirstOrDefault(e => e.Text.StartsWith("Rubryka 18. Adres i numer telefonu miejsca udzielania świadczeń zdrowotnych")).
-                      FindElements(By.TagName("tr")).FirstOrDefault(r => r.Text.StartsWith("7. Numer telefonu")).
+
+                      var corespCity = webDriver.FindElements
+                      (By.ClassName("registry-details-table-separate")).FirstOrDefault(e => e.Text.StartsWith("Rubryka 9. Adres do korespondencji"))
+                      .FindElements(By.TagName("tr")).FirstOrDefault(r => r.Text.StartsWith("6. Miejscowość")).
                       FindElements(By.ClassName("rightThick"))[0].Text;
+                        cities.Add(corespCity);
+
+
+                        var addressesList = webDriver.FindElements
+                            (By.ClassName("odstep")).
+                            Where(e => e.Text.StartsWith("Rubryka 18. Adres i numer telefonu miejsca udzielania świadczeń zdrowotnych")).ToList();
+
+                        foreach (var item in addressesList)
+                        {
+
+                            phone = item.
+                            FindElements(By.TagName("tr")).FirstOrDefault(r => r.Text.StartsWith("7. Numer telefonu")).
+                            FindElements(By.ClassName("rightThick"))[0].Text;
+                            phones.Add(phone.Replace("\n", "").Replace("\r", "").Trim());
+                            city = item.
+                            FindElements(By.TagName("tr")).FirstOrDefault(r => r.Text.StartsWith("6. Miejscowość")).
+                            FindElements(By.ClassName("rightThick"))[0].Text;
+                            cities.Add(city.Replace("\n", "").Replace("\r", "").Trim());
+                        }
+
+                  
                     }
                     catch (Exception ex)
                     {
-                        while (webDriver.FindElements
-                                (By.ClassName("odstep")).
-                                FirstOrDefault(e => e.Text.StartsWith("Rubryka 18. Adres i numer telefonu miejsca udzielania świadczeń zdrowotnych"))==null)
-                                {
-                           
-                                }
-                        goto retry;
 
                         #region old
-                        //string filePath = @"C:\Users\Zaneta\Desktop\programowanie\";
+                        //string filePath = @"C:\Users\jacek\OneDrive\Pulpit\e\";
                         //var remElement = webDriver.FindElement(By.Id("CaptchaImage"));
-                        //Point location = remElement.Location;
+
+                        //webDriver.FindElement(By.XPath(".//*[@id='CaptchaImage']")).Click();
+                        //var attr = webDriver.FindElement(By.XPath(".//*[@id='CaptchaImage']")).GetAttribute("value");
+
+                        //// remElement
+                        //System.Drawing.Point location = remElement.Location;
                         //var screenshot = (webDriver as FirefoxDriver).GetScreenshot();
 
                         //using (MemoryStream stream = new MemoryStream(screenshot.AsByteArray))
@@ -169,24 +201,46 @@ namespace KonowalHunter
                         //        RectangleF part = new RectangleF(location.X, location.Y, remElement.Size.Width, remElement.Size.Height);
                         //        using (Bitmap bn = bitmap.Clone(part, bitmap.PixelFormat))
                         //        {
-                        //            bn.Save(filePath + "Generate.gif", System.Drawing.Imaging.ImageFormat.Png);
+                        //            bn.Save(filePath + "Generate.gif", System.Drawing.Imaging.ImageFormat.Gif);
                         //        }
                         //    }
 
                         //}
 
-                        //using (var engine = new TesseractEngine(filePath, "eng", EngineMode.Default))
-                        //{
+                        //var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase);
+                        //path = Path.Combine(path, "tessdata");
+                        //path = path.Replace("file:\\", "");
 
-                        //    Page ocrPage = engine.Process(Pix.LoadFromFile(filePath + "Generate.png"), PageSegMode.AutoOnly);
-                        //    var captchatext = ocrPage.GetText();
+                        //using (var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default))
+                        //{
+                        //    using (var img = Pix.LoadFromFile(filePath + "Generate.gif"))
+                        //    {
+                        //        using (var page = engine.Process(img))
+                        //        {
+                        //            var text = page.GetText();
+                        //        }
+
+                        //    }
+
+                        //        //Tesseract.Page ocrPage = engine.Process(Pix.LoadFromFile(filePath + "Generate.gif"));
+                        //        //var captchatext = ocrPage.GetText();
                         //}
                         #endregion
+
+                        while (webDriver.FindElements
+                                (By.ClassName("odstep")).
+                                FirstOrDefault(e => e.Text.StartsWith("Rubryka 18. Adres i numer telefonu miejsca udzielania świadczeń zdrowotnych")) == null)
+                        {
+
+                        }
+                        goto retry;
+
+
 
                     }
 
 
-                    Medics.Add(new Medic { Name = name.Replace("\n", "").Replace("\r", "").Trim(), Phone=phone.Replace("\n", "").Replace("\r", "").Trim() });
+                    Medics.Add(new Medic { Name = name.Replace("\n", "").Replace("\r", "").Trim(), Phones=string.Join(";",phones), Cities= string.Join(";", cities), Organisation=Org,Speciality=Speciality, Voivodship=Voidvod });
 
                     webDriver.Url = registy;
                     waitTillPageReady(webDriver, registy);

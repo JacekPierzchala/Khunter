@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,15 +24,23 @@ namespace KonowalHunter.WPF
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         public string SelectedOrg { get; set; }
         public List<string> Orgs { get; set; } = new List<string>();
         public string SelectedVoivod { get; set; }
         public List<string> Voivods { get; set; } = new List<string>();
         public string Specialisation { get; set; }
+        public string City { get; set; }
+        private bool _pending;
 
-        public bool Pending { get; set; }
+        public bool Pending
+        {
+            get { return _pending; }
+            set { _pending = value; OnPropertyChanges(); }
+        }
+
+       
 
         public MainWindow()
         {
@@ -48,6 +58,8 @@ namespace KonowalHunter.WPF
             Pending = true;
             DataContext = this;
         }
+
+       
 
         public void Loadlists()
         {
@@ -87,10 +99,14 @@ namespace KonowalHunter.WPF
             try
             {
                 Pending = false;
-                string[] args = { SelectedOrg, SelectedVoivod, Specialisation };
-                Program.Main(args);
-                Pending = true;
-                MessageBox.Show("File is ready", "", MessageBoxButton.OK, MessageBoxImage.Information);
+                Task.Run(() =>
+                {
+                    string[] args = { SelectedOrg, SelectedVoivod, Specialisation, City };
+                    Program.Main(args);
+                    Pending = true;
+                    MessageBox.Show("File is ready", "", MessageBoxButton.OK, MessageBoxImage.Information);
+                });
+           
             
             }
             catch (Exception ex)
@@ -102,6 +118,14 @@ namespace KonowalHunter.WPF
             }
 
         
+        }
+
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void OnPropertyChanges(string property=null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs (property) );
         }
     }
 }
