@@ -31,6 +31,8 @@ namespace KonowalHunter.WPF
         public string SelectedVoivod { get; set; }
         public List<string> Voivods { get; set; } = new List<string>();
         public string Specialisation { get; set; }
+
+        public string Services { get; set; }
         public string City { get; set; }
         private bool _pending;
 
@@ -101,7 +103,7 @@ namespace KonowalHunter.WPF
                 Pending = false;
                 Task.Run(() =>
                 {
-                    string[] args = { SelectedOrg, SelectedVoivod, Specialisation, City };
+                    string[] args = { SelectedOrg, SelectedVoivod, Specialisation, City, Services };
                     Program.Main(args);
                     Pending = true;
                     MessageBox.Show("File is ready", "", MessageBoxButton.OK, MessageBoxImage.Information);

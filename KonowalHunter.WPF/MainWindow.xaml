@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Topmost="True"
         WindowStartupLocation="CenterScreen"
-        Title="KONOWAŁ HUNTER" Height="300" Width="350">
+        Title="KONOWAŁ HUNTER" Height="380" Width="350">
     <Grid>
         <StackPanel>
             <Label>Izba Lekarska</Label>
@@ -16,6 +16,8 @@
             <ComboBox IsEnabled="{Binding Pending}"  SelectedItem="{Binding SelectedVoivod}"  ItemsSource="{Binding Voivods}"></ComboBox>
             <Label>Specjalizacja</Label>
             <TextBox FontSize="14" IsEnabled="{Binding Pending}"  Text="{Binding Specialisation}" Margin="2" Height="30"></TextBox>
+            <Label>Rodzaj usług</Label>
+            <TextBox FontSize="14" IsEnabled="{Binding Pending}"  Text="{Binding Services}" Margin="2" Height="30"></TextBox>
             <Label>Miasto</Label>
             <TextBox FontSize="14" IsEnabled="{Binding Pending}"  Text="{Binding City}" Margin="2" Height="30"></TextBox>
             <Button IsEnabled="{Binding Pending}"  Cursor="Hand" Click="Button_Click">Search</Button>

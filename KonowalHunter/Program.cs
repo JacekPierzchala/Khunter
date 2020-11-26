@@ -28,6 +28,7 @@ namespace KonowalHunter
         public static string Org { get; set; }
         public static string Voidvod { get; set; }
         public static string Speciality { get; set; }
+        public static string Services { get; set; }
         public static string City { get; set; }
         public static void Main(string[] args)
         {
@@ -35,6 +36,7 @@ namespace KonowalHunter
             Voidvod = args[1];
             Speciality = args[2];
             City = args[3];
+            Services = args[4];
             string registy = "https://rpwdl.csioz.gov.pl/RPZ/RegistryList";
             string mainPage = "https://rpwdl.csioz.gov.pl/RPZ/SearchEx?institutionType=L";
             Medics.Clear();
@@ -63,7 +65,13 @@ namespace KonowalHunter
             {
                 webDriver.FindElement(By.Id("City")).SendKeys(City);
             }
-           
+
+
+            if (Services != null)
+            {
+                webDriver.FindElement(By.Id("HealthBenefitsTypesDesc")).SendKeys(Services);
+            }
+
 
             webDriver.FindElement(By.ClassName("btn-primary")).Click();
             waitTillPageReady(webDriver, registy);
